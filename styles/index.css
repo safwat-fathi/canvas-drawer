@@ -1,0 +1,17 @@
+#canvas {
+  border: 1px solid;
+  /* position: relative; */
+}
+
+.canvas-wrapper {
+}
+
+.controls {
+  display: flex;
+  /* flex-direction: column; */
+  gap: 0.5rem;
+}
+
+.controls button {
+  width: fit-content;
+}
