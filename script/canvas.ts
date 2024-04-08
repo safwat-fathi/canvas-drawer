@@ -3,45 +3,68 @@ type MoveEvents = "mousemove" | "touchmove";
 type ReleaseEvents = "mouseup" | "touchend";
 type CancelEvents = "mouseout" | "touchcancel";
 
+type CtxOptions = {
+  lineCap?: CanvasLineCap;
+  lineJoin?: CanvasLineJoin;
+  lineWidth?: number;
+  strokeStyle?: string;
+  font?: string;
+};
+
 class CanvasDrawer {
   private _canvas: HTMLCanvasElement;
-  private _rect: DOMRect;
+  private _isDrawLine = false;
   // private _canvasWidth: number
   // private _canvasHeight: number
   // private _canvasRatio: number
-  private _clearEl: HTMLButtonElement;
   private _ctx: CanvasRenderingContext2D;
-
+  private _options: CtxOptions = {};
   private _paint: boolean;
+  private _actions: { x: number[]; y: number[] }[] = [];
   private _clickX: number[] = [];
   private _clickY: number[] = [];
   private _clickDrag: boolean[] = [];
 
-  constructor(canvas: HTMLCanvasElement, clearElement: HTMLButtonElement) {
+  constructor(canvas: HTMLCanvasElement) {
     this._canvas = canvas;
-    this._rect = canvas.getBoundingClientRect();
     this._ctx = canvas.getContext("2d")!;
-    this._clearEl = clearElement;
     this._paint = false;
-
-    this._ctxOptions();
-    this._registerUserEvents();
   }
 
-  private _ctxOptions() {
-    this._ctx.lineCap = "round";
-    this._ctx.lineJoin = "bevel";
-    this._ctx.lineWidth = 1;
-    this._ctx.strokeStyle = "black";
-    this._ctx.font = "16px Arial";
-  }
+  public init = () => {
+    this._canvas.width = this._canvas.clientWidth;
+    this._canvas.height = this._canvas.clientHeight;
+    this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
-  private _clear() {
+    // this._ctxOptions(null);
+  };
+
+  public setDrawLine = (isDrawLine: boolean) => {
+    this._isDrawLine = isDrawLine;
+
+    if (isDrawLine) this._registerUserEvents();
+    else this._unregisterUserEvents();
+  };
+
+  public clear = () => {
     this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
     this._clickX = [];
     this._clickY = [];
     this._clickDrag = [];
-  }
+  };
+
+  private _ctxOptions = () => {
+    this._ctx.lineCap = this._options?.lineCap || "round";
+    this._ctx.lineJoin = this._options?.lineJoin || "bevel";
+    this._ctx.lineWidth = this._options?.lineWidth || 1;
+    this._ctx.strokeStyle = this._options?.strokeStyle || "black";
+    this._ctx.font = this._options?.font || "16px Arial";
+  };
+
+  public setOptions = (options: CtxOptions) => {
+    this._options = { ...this._options, ...options };
+    this._ctxOptions();
+  };
 
   private _addClick = (x: number, y: number, dragging: boolean) => {
     this._clickX.push(x);
@@ -67,7 +90,7 @@ class CanvasDrawer {
 
     this._paint = true;
 
-    this._drawLine();
+    if (this._isDrawLine) this._drawLine();
   };
 
   private _moveEventHandler = (e: MouseEvent | TouchEvent) => {
@@ -86,7 +109,8 @@ class CanvasDrawer {
 
     if (this._paint) {
       this._addClick(mouseX, mouseY, true);
-      this._drawLine();
+
+      if (this._isDrawLine) this._drawLine();
     }
   };
 
@@ -95,14 +119,13 @@ class CanvasDrawer {
   };
 
   private _releaseEventHandler = () => {
-    // const target = e.target as HTMLCanvasElement;
-
     this._paint = false;
-    // this._redraw();
-  };
 
-  private _clearEventHandler = () => {
-    this._clear();
+    this._clickX = [];
+    this._clickY = [];
+
+    // store action
+    this._actions.push({ x: this._clickX, y: this._clickY });
   };
 
   private _registerUserEvents = () => {
@@ -112,13 +135,13 @@ class CanvasDrawer {
     const cancelEvents: CancelEvents[] = ["mouseout", "touchcancel"];
 
     pressEvents.forEach(event =>
-      this._canvas.addEventListener(event, this._pressEventHandler as any, {
+      this._canvas.addEventListener(event, this._pressEventHandler, {
         passive: true,
       })
     );
 
     moveEvents.forEach(event =>
-      this._canvas.addEventListener(event, this._moveEventHandler as any, {
+      this._canvas.addEventListener(event, this._moveEventHandler, {
         passive: true,
       })
     );
@@ -130,11 +153,32 @@ class CanvasDrawer {
     cancelEvents.forEach(event =>
       this._canvas.addEventListener(event, this._cancelEventHandler)
     );
-
-    this._clearEl.addEventListener("click", this._clearEventHandler);
   };
 
-  private _drawLine() {
+  private _unregisterUserEvents = () => {
+    const pressEvents: PressEvents[] = ["mousedown", "touchstart"];
+    const moveEvents: MoveEvents[] = ["mousemove", "touchmove"];
+    const releaseEvents: ReleaseEvents[] = ["mouseup", "touchend"];
+    const cancelEvents: CancelEvents[] = ["mouseout", "touchcancel"];
+
+    pressEvents.forEach(event =>
+      this._canvas.removeEventListener(event, this._pressEventHandler)
+    );
+
+    moveEvents.forEach(event =>
+      this._canvas.removeEventListener(event, this._moveEventHandler)
+    );
+
+    releaseEvents.forEach(event =>
+      this._canvas.removeEventListener(event, this._releaseEventHandler)
+    );
+
+    cancelEvents.forEach(event =>
+      this._canvas.removeEventListener(event, this._cancelEventHandler)
+    );
+  };
+
+  private _drawLine = () => {
     for (let i = 0; i < this._clickX.length; ++i) {
       this._ctx.beginPath();
 
@@ -145,72 +189,12 @@ class CanvasDrawer {
       }
 
       this._ctx.lineTo(this._clickX[i], this._clickY[i]);
+      // this._ctx.lineCap = this._options.lineCap || "round";
+      // this._ctx.strokeStyle = this._options.strokeStyle || "black";
       this._ctx.stroke();
     }
-
     this._ctx.closePath();
-  }
+  };
 }
-// class CanvasDrawer {
-//   private _canvas: HTMLCanvasElement;
-//   private _ctx: CanvasRenderingContext2D;
-//   private _isDrawing: boolean = false;
-//   private _startX: number = 0;
-//   private _startY: number = 0;
 
-//   constructor(canvas: HTMLCanvasElement) {
-//     this._canvas = canvas;
-//     this._ctx = this._canvas.getContext("2d") as CanvasRenderingContext2D;
-
-//     this._initEventListeners();
-//   }
-
-//   private _initEventListeners() {
-//     this._canvas.addEventListener("mousedown", this._onMouseDown);
-//     this._canvas.addEventListener("mouseup", this._onMouseUp);
-//     this._canvas.addEventListener("mousemove", this._onMouseMove);
-//   }
-
-//   private _onMouseDown = (e: MouseEvent) => {
-//     this._isDrawing = true;
-//     this._startX = e.offsetX;
-//     this._startY = e.offsetY;
-//   };
-
-//   private _onMouseUp = (e: MouseEvent) => {
-//     if (this._isDrawing) {
-//       this._isDrawing = false;
-//       this._drawLine(this._startX, this._startY, e.offsetX, e.offsetY);
-//     }
-//   };
-
-//   private _onMouseMove = (e: MouseEvent) => {
-//     if (this._isDrawing) {
-//       this._drawLine(this._startX, this._startY, e.offsetX, e.offsetY);
-//       this._startX = e.offsetX;
-//       this._startY = e.offsetY;
-//     }
-//   };
-
-//   private _drawLine(
-//     startX: number,
-//     startY: number,
-//     endX: number,
-//     endY: number
-//   ) {
-//     this._ctx.beginPath();
-//     this._ctx.moveTo(startX, startY);
-//     this._ctx.lineTo(endX, endY);
-//     this._ctx.stroke(); // Change this to .strokeStyle for specific color
-//   }
-
-//   // Optional methods for customization (add stroke style, line width etc.)
-//   public setStrokeStyle(style: string) {
-//     this._ctx.strokeStyle = style;
-//   }
-
-//   public setLineWidth(width: number) {
-//     this._ctx.lineWidth = width;
-//   }
-// }
 export default CanvasDrawer;

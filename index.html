@@ -14,12 +14,13 @@
       <canvas id="canvas" width="1000" height="500"></canvas>
 
       <div class="controls">
-        <button id="draw-line">Draw Line</button>
+        <button id="draw-line" data-toggle="false">Draw Line</button>
         <button id="clear">Clear Canvas</button>
+        <input type="number" id="width" placeholder="Change line width" />
+        <input type="color" id="color" />
       </div>
     </div>
 
     <script type="module" src="dist/index.js"></script>
-    <!-- <script src="dist/read-large-files.js"></script> -->
   </body>
 </html>

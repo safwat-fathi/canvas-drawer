@@ -1,29 +1,35 @@
 import CanvasDrawer from "./canvas.js";
 
-(async () => {
-  const canvas = document.getElementById("canvas") as HTMLCanvasElement;
-  const clear = document.getElementById("clear") as HTMLButtonElement;
+const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+const drawLine = document.getElementById("draw-line") as HTMLButtonElement;
+const clear = document.getElementById("clear") as HTMLButtonElement;
+const lineWidth = document.getElementById("width") as HTMLInputElement;
+const color = document.getElementById("color") as HTMLInputElement;
 
-  const canvasDrawer = new CanvasDrawer(canvas, clear);
+const canvasDrawer = new CanvasDrawer(canvas);
 
-  // const registerServiceWorker = async () => {
-  //   if ("serviceWorker" in navigator) {
-  //     try {
-  //       console.log("registering service worker...");
-  //       const registration = await navigator.serviceWorker.register(
-  //         "./dist/service-worker.js"
-  //       );
-  //       if (registration.installing) {
-  //         console.log("Service worker installing");
-  //       } else if (registration.waiting) {
-  //         console.log("Service worker installed");
-  //       } else if (registration.active) {
-  //         console.log("Service worker active");
-  //       }
-  //     } catch (error) {
-  //       console.error(`Registration failed with ${error}`);
-  //     }
-  //   }
-  // };
-  // await registerServiceWorker();
-})();
+canvasDrawer.init();
+
+clear.addEventListener("click", canvasDrawer.clear);
+
+drawLine.addEventListener("click", () => {
+  let toggle = false;
+
+  if (drawLine.getAttribute("data-toggle") === "true") {
+    drawLine.setAttribute("data-toggle", "false");
+    toggle = false;
+  } else {
+    drawLine.setAttribute("data-toggle", "true");
+    toggle = true;
+  }
+
+  canvasDrawer.setDrawLine(toggle);
+});
+
+lineWidth.addEventListener("input", () => {
+  canvasDrawer.setOptions({ lineWidth: +lineWidth.value });
+});
+
+color.addEventListener("input", () => {
+  canvasDrawer.setOptions({ strokeStyle: color.value });
+});
