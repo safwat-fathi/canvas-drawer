@@ -1,12 +1,16 @@
 import CanvasDrawer from "./canvas.js";
 var canvas = document.getElementById("canvas");
+// canvas actions
 var drawLine = document.getElementById("draw-line");
+var undo = document.getElementById("undo");
 var clear = document.getElementById("clear");
+// canvas controls
 var lineWidth = document.getElementById("width");
 var color = document.getElementById("color");
 var canvasDrawer = new CanvasDrawer(canvas);
 canvasDrawer.init();
 clear.addEventListener("click", canvasDrawer.clear);
+undo.addEventListener("click", canvasDrawer.undo);
 drawLine.addEventListener("click", function () {
     var toggle = false;
     if (drawLine.getAttribute("data-toggle") === "true") {

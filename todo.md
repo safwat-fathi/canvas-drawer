@@ -11,3 +11,4 @@
 - add image
 - export as json
 - import as json
+- undo

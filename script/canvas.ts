@@ -11,6 +11,15 @@ type CtxOptions = {
   font?: string;
 };
 
+enum ActionType {
+  "Line",
+  "Shape",
+  "Text",
+  "Clear",
+}
+
+type CanvasAction = { x: number[]; y: number[]; type: ActionType };
+
 class CanvasDrawer {
   private _canvas: HTMLCanvasElement;
   private _isDrawLine = false;
@@ -20,7 +29,7 @@ class CanvasDrawer {
   private _ctx: CanvasRenderingContext2D;
   private _options: CtxOptions = {};
   private _paint: boolean;
-  private _actions: { x: number[]; y: number[] }[] = [];
+  private _actions: CanvasAction[] = [];
   private _clickX: number[] = [];
   private _clickY: number[] = [];
   private _clickDrag: boolean[] = [];
@@ -90,7 +99,7 @@ class CanvasDrawer {
 
     this._paint = true;
 
-    if (this._isDrawLine) this._drawLine();
+    if (this._isDrawLine) this._draw();
   };
 
   private _moveEventHandler = (e: MouseEvent | TouchEvent) => {
@@ -110,7 +119,7 @@ class CanvasDrawer {
     if (this._paint) {
       this._addClick(mouseX, mouseY, true);
 
-      if (this._isDrawLine) this._drawLine();
+      if (this._isDrawLine) this._draw();
     }
   };
 
@@ -121,11 +130,25 @@ class CanvasDrawer {
   private _releaseEventHandler = () => {
     this._paint = false;
 
+    if (this._isDrawLine) {
+      this._actions.push({
+        x: this._clickX,
+        y: this._clickY,
+        type: ActionType.Line,
+      });
+    }
+
     this._clickX = [];
     this._clickY = [];
 
     // store action
-    this._actions.push({ x: this._clickX, y: this._clickY });
+    // let actionType: ActionType | null = null;
+
+    console.log("🚀 ~ this._isDrawLine:", this._isDrawLine);
+    console.log("🚀 ~ this._actions:", this._actions);
+    // console.log("🚀 ~ actionType:", actionType);
+
+    // if (actionType === null) return;
   };
 
   private _registerUserEvents = () => {
@@ -178,20 +201,48 @@ class CanvasDrawer {
     );
   };
 
-  private _drawLine = () => {
-    for (let i = 0; i < this._clickX.length; ++i) {
-      this._ctx.beginPath();
+  public undo = () => {
+    const lastAction = this._actions.pop();
 
-      if (this._clickDrag[i] && i) {
-        this._ctx.moveTo(this._clickX[i - 1], this._clickY[i - 1]);
-      } else {
-        this._ctx.moveTo(this._clickX[i] - 1, this._clickY[i]);
+    if (!lastAction) return;
+
+    this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+
+    // this._clickX = lastAction.x;
+    // this._clickY = lastAction.y;
+
+    this._draw(true);
+  };
+
+  public hasActions = () => {
+    return this._actions.length > 0;
+  };
+
+  private _draw = (undo = false) => {
+    if (undo) {
+      for (const action of this._actions) {
+        this._ctx.beginPath();
+        this._ctx.moveTo(action.x[0], action.y[0]);
+
+        for (let i = 1; i < action.x.length; ++i) {
+          this._ctx.lineTo(action.x[i], action.y[i]);
+        }
+
+        this._ctx.stroke();
       }
+    } else {
+      for (let i = 0; i < this._clickX.length; ++i) {
+        this._ctx.beginPath();
 
-      this._ctx.lineTo(this._clickX[i], this._clickY[i]);
-      // this._ctx.lineCap = this._options.lineCap || "round";
-      // this._ctx.strokeStyle = this._options.strokeStyle || "black";
-      this._ctx.stroke();
+        if (this._clickDrag[i] && i) {
+          this._ctx.moveTo(this._clickX[i - 1], this._clickY[i - 1]);
+        } else {
+          this._ctx.moveTo(this._clickX[i] - 1, this._clickY[i]);
+        }
+
+        this._ctx.lineTo(this._clickX[i], this._clickY[i]);
+        this._ctx.stroke();
+      }
     }
     this._ctx.closePath();
   };

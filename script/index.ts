@@ -1,8 +1,11 @@
 import CanvasDrawer from "./canvas.js";
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
+// canvas actions
 const drawLine = document.getElementById("draw-line") as HTMLButtonElement;
+const undo = document.getElementById("undo") as HTMLButtonElement;
 const clear = document.getElementById("clear") as HTMLButtonElement;
+// canvas controls
 const lineWidth = document.getElementById("width") as HTMLInputElement;
 const color = document.getElementById("color") as HTMLInputElement;
 
@@ -11,6 +14,7 @@ const canvasDrawer = new CanvasDrawer(canvas);
 canvasDrawer.init();
 
 clear.addEventListener("click", canvasDrawer.clear);
+undo.addEventListener("click", canvasDrawer.undo);
 
 drawLine.addEventListener("click", () => {
   let toggle = false;

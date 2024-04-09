@@ -9,6 +9,13 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var ActionType;
+(function (ActionType) {
+    ActionType[ActionType["Line"] = 0] = "Line";
+    ActionType[ActionType["Shape"] = 1] = "Shape";
+    ActionType[ActionType["Text"] = 2] = "Text";
+    ActionType[ActionType["Clear"] = 3] = "Clear";
+})(ActionType || (ActionType = {}));
 var CanvasDrawer = /** @class */ (function () {
     function CanvasDrawer(canvas) {
         var _this = this;
@@ -69,7 +76,7 @@ var CanvasDrawer = /** @class */ (function () {
             _this._addClick(mouseX, mouseY, false);
             _this._paint = true;
             if (_this._isDrawLine)
-                _this._drawLine();
+                _this._draw();
         };
         this._moveEventHandler = function (e) {
             var target = e.target;
@@ -86,7 +93,7 @@ var CanvasDrawer = /** @class */ (function () {
             if (_this._paint) {
                 _this._addClick(mouseX, mouseY, true);
                 if (_this._isDrawLine)
-                    _this._drawLine();
+                    _this._draw();
             }
         };
         this._cancelEventHandler = function () {
@@ -94,10 +101,21 @@ var CanvasDrawer = /** @class */ (function () {
         };
         this._releaseEventHandler = function () {
             _this._paint = false;
+            if (_this._isDrawLine) {
+                _this._actions.push({
+                    x: _this._clickX,
+                    y: _this._clickY,
+                    type: ActionType.Line,
+                });
+            }
             _this._clickX = [];
             _this._clickY = [];
             // store action
-            _this._actions.push({ x: _this._clickX, y: _this._clickY });
+            // let actionType: ActionType | null = null;
+            console.log("🚀 ~ this._isDrawLine:", _this._isDrawLine);
+            console.log("🚀 ~ this._actions:", _this._actions);
+            // console.log("🚀 ~ actionType:", actionType);
+            // if (actionType === null) return;
         };
         this._registerUserEvents = function () {
             var pressEvents = ["mousedown", "touchstart"];
@@ -139,19 +157,43 @@ var CanvasDrawer = /** @class */ (function () {
                 return _this._canvas.removeEventListener(event, _this._cancelEventHandler);
             });
         };
-        this._drawLine = function () {
-            for (var i = 0; i < _this._clickX.length; ++i) {
-                _this._ctx.beginPath();
-                if (_this._clickDrag[i] && i) {
-                    _this._ctx.moveTo(_this._clickX[i - 1], _this._clickY[i - 1]);
+        this.undo = function () {
+            var lastAction = _this._actions.pop();
+            if (!lastAction)
+                return;
+            _this._ctx.clearRect(0, 0, _this._canvas.width, _this._canvas.height);
+            // this._clickX = lastAction.x;
+            // this._clickY = lastAction.y;
+            _this._draw(true);
+        };
+        this.hasActions = function () {
+            return _this._actions.length > 0;
+        };
+        this._draw = function (undo) {
+            if (undo === void 0) { undo = false; }
+            if (undo) {
+                for (var _i = 0, _a = _this._actions; _i < _a.length; _i++) {
+                    var action = _a[_i];
+                    _this._ctx.beginPath();
+                    _this._ctx.moveTo(action.x[0], action.y[0]);
+                    for (var i = 1; i < action.x.length; ++i) {
+                        _this._ctx.lineTo(action.x[i], action.y[i]);
+                    }
+                    _this._ctx.stroke();
                 }
-                else {
-                    _this._ctx.moveTo(_this._clickX[i] - 1, _this._clickY[i]);
+            }
+            else {
+                for (var i = 0; i < _this._clickX.length; ++i) {
+                    _this._ctx.beginPath();
+                    if (_this._clickDrag[i] && i) {
+                        _this._ctx.moveTo(_this._clickX[i - 1], _this._clickY[i - 1]);
+                    }
+                    else {
+                        _this._ctx.moveTo(_this._clickX[i] - 1, _this._clickY[i]);
+                    }
+                    _this._ctx.lineTo(_this._clickX[i], _this._clickY[i]);
+                    _this._ctx.stroke();
                 }
-                _this._ctx.lineTo(_this._clickX[i], _this._clickY[i]);
-                // this._ctx.lineCap = this._options.lineCap || "round";
-                // this._ctx.strokeStyle = this._options.strokeStyle || "black";
-                _this._ctx.stroke();
             }
             _this._ctx.closePath();
         };
