@@ -1,4 +1,4 @@
-import CanvasDrawer from "./canvas.js";
+import CanvasApp from "./canvas.js";
 var canvas = document.getElementById("canvas");
 // canvas actions
 var drawLine = document.getElementById("draw-line");
@@ -7,10 +7,11 @@ var clear = document.getElementById("clear");
 // canvas controls
 var lineWidth = document.getElementById("width");
 var color = document.getElementById("color");
-var canvasDrawer = new CanvasDrawer(canvas);
-canvasDrawer.init();
-clear.addEventListener("click", canvasDrawer.clear);
-undo.addEventListener("click", canvasDrawer.undo);
+var canvasApp = new CanvasApp(canvas);
+canvasApp.init({ lineWidth: +lineWidth.value, strokeStyle: color.value });
+console.log("🚀 ~ color.value:", color.value);
+clear.addEventListener("click", canvasApp.clear);
+undo.addEventListener("click", canvasApp.undo);
 drawLine.addEventListener("click", function () {
     var toggle = false;
     if (drawLine.getAttribute("data-toggle") === "true") {
@@ -21,11 +22,11 @@ drawLine.addEventListener("click", function () {
         drawLine.setAttribute("data-toggle", "true");
         toggle = true;
     }
-    canvasDrawer.setDrawLine(toggle);
+    canvasApp.setDrawLine(toggle);
 });
 lineWidth.addEventListener("input", function () {
-    canvasDrawer.setOptions({ lineWidth: +lineWidth.value });
+    canvasApp.setOptions({ lineWidth: +lineWidth.value });
 });
 color.addEventListener("input", function () {
-    canvasDrawer.setOptions({ strokeStyle: color.value });
+    canvasApp.setOptions({ strokeStyle: color.value });
 });

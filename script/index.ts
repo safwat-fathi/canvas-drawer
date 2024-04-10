@@ -1,4 +1,4 @@
-import CanvasDrawer from "./canvas.js";
+import CanvasApp from "./canvas.js";
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 // canvas actions
@@ -9,12 +9,13 @@ const clear = document.getElementById("clear") as HTMLButtonElement;
 const lineWidth = document.getElementById("width") as HTMLInputElement;
 const color = document.getElementById("color") as HTMLInputElement;
 
-const canvasDrawer = new CanvasDrawer(canvas);
+const canvasApp = new CanvasApp(canvas);
 
-canvasDrawer.init();
+canvasApp.init({ lineWidth: +lineWidth.value, strokeStyle: color.value });
+console.log("🚀 ~ color.value:", color.value);
 
-clear.addEventListener("click", canvasDrawer.clear);
-undo.addEventListener("click", canvasDrawer.undo);
+clear.addEventListener("click", canvasApp.clear);
+undo.addEventListener("click", canvasApp.undo);
 
 drawLine.addEventListener("click", () => {
   let toggle = false;
@@ -27,13 +28,13 @@ drawLine.addEventListener("click", () => {
     toggle = true;
   }
 
-  canvasDrawer.setDrawLine(toggle);
+  canvasApp.setDrawLine(toggle);
 });
 
 lineWidth.addEventListener("input", () => {
-  canvasDrawer.setOptions({ lineWidth: +lineWidth.value });
+  canvasApp.setOptions({ lineWidth: +lineWidth.value });
 });
 
 color.addEventListener("input", () => {
-  canvasDrawer.setOptions({ strokeStyle: color.value });
+  canvasApp.setOptions({ strokeStyle: color.value });
 });

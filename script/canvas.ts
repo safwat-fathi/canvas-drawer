@@ -18,9 +18,14 @@ enum ActionType {
   "Clear",
 }
 
-type CanvasAction = { x: number[]; y: number[]; type: ActionType };
+type CanvasAction = {
+  x: number[];
+  y: number[];
+  type: ActionType;
+  options: CtxOptions;
+};
 
-class CanvasDrawer {
+class CanvasApp {
   private _canvas: HTMLCanvasElement;
   private _isDrawLine = false;
   // private _canvasWidth: number
@@ -28,7 +33,7 @@ class CanvasDrawer {
   // private _canvasRatio: number
   private _ctx: CanvasRenderingContext2D;
   private _options: CtxOptions = {};
-  private _paint: boolean;
+  private _active = false;
   private _actions: CanvasAction[] = [];
   private _clickX: number[] = [];
   private _clickY: number[] = [];
@@ -37,15 +42,14 @@ class CanvasDrawer {
   constructor(canvas: HTMLCanvasElement) {
     this._canvas = canvas;
     this._ctx = canvas.getContext("2d")!;
-    this._paint = false;
   }
 
-  public init = () => {
+  public init = (options?: CtxOptions) => {
     this._canvas.width = this._canvas.clientWidth;
     this._canvas.height = this._canvas.clientHeight;
     this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
 
-    // this._ctxOptions(null);
+    this._ctxOptions(options);
   };
 
   public setDrawLine = (isDrawLine: boolean) => {
@@ -62,12 +66,19 @@ class CanvasDrawer {
     this._clickDrag = [];
   };
 
-  private _ctxOptions = () => {
+  private _ctxOptions = (options?: CtxOptions) => {
+    this._options = { ...this._options, ...options };
+
     this._ctx.lineCap = this._options?.lineCap || "round";
+    // this._ctx.lineCap = options?.lineCap || this._options?.lineCap || "round";
     this._ctx.lineJoin = this._options?.lineJoin || "bevel";
+    // this._ctx.lineJoin = options?.lineJoin || this._options?.lineJoin || "bevel";
     this._ctx.lineWidth = this._options?.lineWidth || 1;
+    // this._ctx.lineWidth = options?.lineWidth || this._options?.lineWidth || 1;
     this._ctx.strokeStyle = this._options?.strokeStyle || "black";
+    // this._ctx.strokeStyle = options?.strokeStyle || this._options?.strokeStyle || "black";
     this._ctx.font = this._options?.font || "16px Arial";
+    // this._ctx.font = options?.font || this._options?.font || "16px Arial";
   };
 
   public setOptions = (options: CtxOptions) => {
@@ -97,7 +108,7 @@ class CanvasDrawer {
 
     this._addClick(mouseX, mouseY, false);
 
-    this._paint = true;
+    this._active = true;
 
     if (this._isDrawLine) this._draw();
   };
@@ -116,39 +127,42 @@ class CanvasDrawer {
       mouseY = e.touches[0].clientY - target.offsetTop;
     }
 
-    if (this._paint) {
+    if (this._active) {
       this._addClick(mouseX, mouseY, true);
 
       if (this._isDrawLine) this._draw();
     }
   };
 
-  private _cancelEventHandler = () => {
-    this._paint = false;
-  };
+  private _isActive = () => this._active;
 
-  private _releaseEventHandler = () => {
-    this._paint = false;
+  // a function handles canvas state on done drawing
+  private _userActionDone = () => {
+    if (!this._isActive()) return;
+
+    this._active = false;
 
     if (this._isDrawLine) {
       this._actions.push({
         x: this._clickX,
         y: this._clickY,
         type: ActionType.Line,
+        options: this._options,
       });
     }
 
     this._clickX = [];
     this._clickY = [];
+  };
 
-    // store action
-    // let actionType: ActionType | null = null;
+  private _cancelEventHandler = () => {
+    if (!this._isActive()) return;
 
-    console.log("🚀 ~ this._isDrawLine:", this._isDrawLine);
-    console.log("🚀 ~ this._actions:", this._actions);
-    // console.log("🚀 ~ actionType:", actionType);
+    this._userActionDone();
+  };
 
-    // if (actionType === null) return;
+  private _releaseEventHandler = () => {
+    this._userActionDone();
   };
 
   private _registerUserEvents = () => {
@@ -170,11 +184,13 @@ class CanvasDrawer {
     );
 
     releaseEvents.forEach(event =>
-      this._canvas.addEventListener(event, this._releaseEventHandler)
+      // this._canvas.addEventListener(event, this._releaseEventHandler)
+      document.addEventListener(event, this._releaseEventHandler)
     );
 
-    cancelEvents.forEach(event =>
-      this._canvas.addEventListener(event, this._cancelEventHandler)
+    cancelEvents.forEach(
+      event => this._canvas.addEventListener(event, this._cancelEventHandler)
+      // document.addEventListener(event, this._cancelEventHandler)
     );
   };
 
@@ -202,6 +218,9 @@ class CanvasDrawer {
   };
 
   public undo = () => {
+    console.log("🚀 ~ undo this._actions:", this._actions);
+    console.log("🚀 ~ undo this._actions.length:", this._actions.length);
+
     const lastAction = this._actions.pop();
 
     if (!lastAction) return;
@@ -226,9 +245,10 @@ class CanvasDrawer {
 
         for (let i = 1; i < action.x.length; ++i) {
           this._ctx.lineTo(action.x[i], action.y[i]);
+          this._ctx.stroke();
+          this._ctx.strokeStyle = action.options.strokeStyle || "black";
+          this._ctx.lineWidth = action.options.lineWidth || 1;
         }
-
-        this._ctx.stroke();
       }
     } else {
       for (let i = 0; i < this._clickX.length; ++i) {
@@ -244,8 +264,9 @@ class CanvasDrawer {
         this._ctx.stroke();
       }
     }
+
     this._ctx.closePath();
   };
 }
 
-export default CanvasDrawer;
+export default CanvasApp;

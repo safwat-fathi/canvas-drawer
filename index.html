@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Canvas Drawer</title>
+    <title>Canvas App</title>
 
     <link rel="stylesheet" href="styles/index.css" />
   </head>
   <body>
-    <h1>Welcome to canvas drawer</h1>
+    <h1>Welcome to canvas application</h1>
 
     <div class="canvas-wrapper">
       <canvas id="canvas" width="1000" height="500"></canvas>
@@ -17,8 +17,13 @@
         <button id="draw-line" data-toggle="false">Draw Line</button>
         <button id="clear">Clear Canvas</button>
         <button id="undo">Undo</button>
-        <input type="number" id="width" placeholder="Change line width" />
-        <input type="color" id="color" />
+        <input
+          type="number"
+          id="width"
+          value="3"
+          placeholder="Change line width"
+        />
+        <input type="color" id="color" value="#ed0c0c" />
       </div>
     </div>
 

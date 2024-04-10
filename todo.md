@@ -12,3 +12,7 @@
 - export as json
 - import as json
 - undo
+
+## fix
+
+- undo cause ctx options (stroke color, line width, etc...) is not correct
