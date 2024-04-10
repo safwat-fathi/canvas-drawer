@@ -3,6 +3,7 @@
   width: 1000px;
   height: 500px;
   /* position: relative; */
+  user-select: none;
 }
 
 .canvas-wrapper {
@@ -18,4 +19,5 @@
 
 button {
   width: fit-content;
+  height: 25px;
 }

@@ -12,6 +12,7 @@
 - export as json (store actions)
 - import as json
 - undo
+- copy 
 
 ## fix
 
