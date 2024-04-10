@@ -5,6 +5,7 @@ const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const drawLine = document.getElementById("draw-line") as HTMLButtonElement;
 const undo = document.getElementById("undo") as HTMLButtonElement;
 const clear = document.getElementById("clear") as HTMLButtonElement;
+const xport = document.getElementById("export") as HTMLButtonElement;
 // canvas controls
 const lineWidth = document.getElementById("width") as HTMLInputElement;
 const color = document.getElementById("color") as HTMLInputElement;
@@ -16,6 +17,7 @@ console.log("🚀 ~ color.value:", color.value);
 
 clear.addEventListener("click", canvasApp.clear);
 undo.addEventListener("click", canvasApp.undo);
+xport.addEventListener("click", canvasApp.export);
 
 drawLine.addEventListener("click", () => {
   let toggle = false;

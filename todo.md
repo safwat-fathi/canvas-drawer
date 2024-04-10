@@ -9,7 +9,7 @@
 
 - write text (maybe add element and add content editable attr to it)
 - add image
-- export as json
+- export as json (store actions)
 - import as json
 - undo
 

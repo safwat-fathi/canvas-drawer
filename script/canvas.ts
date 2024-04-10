@@ -25,12 +25,25 @@ type CanvasAction = {
   options: CtxOptions;
 };
 
+type Rect = {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+};
+
+type Circle = {
+  x: number;
+  y: number;
+  radius: number;
+  startAngle: number;
+  endAngle: number;
+  counterclockwise?: boolean | undefined;
+};
+
 class CanvasApp {
   private _canvas: HTMLCanvasElement;
-  private _isDrawLine = false;
-  // private _canvasWidth: number
-  // private _canvasHeight: number
-  // private _canvasRatio: number
+  private _isLine = false;
   private _ctx: CanvasRenderingContext2D;
   private _options: CtxOptions = {};
   private _active = false;
@@ -53,7 +66,7 @@ class CanvasApp {
   };
 
   public setDrawLine = (isDrawLine: boolean) => {
-    this._isDrawLine = isDrawLine;
+    this._isLine = isDrawLine;
 
     if (isDrawLine) this._registerUserEvents();
     else this._unregisterUserEvents();
@@ -64,6 +77,30 @@ class CanvasApp {
     this._clickX = [];
     this._clickY = [];
     this._clickDrag = [];
+  };
+
+  public export = () => {
+    // const dataUrl = this._canvas.toDataURL();
+    const data = {
+      actions: this._actions,
+      width: this._canvas.width,
+      height: this._canvas.height,
+    };
+
+    const string = JSON.stringify(data);
+
+    // create a blob object representing the data as a JSON string
+    const file = new Blob([string], {
+      type: "application/json",
+    });
+
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(file);
+    link.download = "canvas.json";
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   private _ctxOptions = (options?: CtxOptions) => {
@@ -110,7 +147,7 @@ class CanvasApp {
 
     this._active = true;
 
-    if (this._isDrawLine) this._draw();
+    if (this._isLine) this._draw();
   };
 
   private _moveEventHandler = (e: MouseEvent | TouchEvent) => {
@@ -130,7 +167,7 @@ class CanvasApp {
     if (this._active) {
       this._addClick(mouseX, mouseY, true);
 
-      if (this._isDrawLine) this._draw();
+      if (this._isLine) this._draw();
     }
   };
 
@@ -142,7 +179,7 @@ class CanvasApp {
 
     this._active = false;
 
-    if (this._isDrawLine) {
+    if (this._isLine) {
       this._actions.push({
         x: this._clickX,
         y: this._clickY,
@@ -266,6 +303,25 @@ class CanvasApp {
     }
 
     this._ctx.closePath();
+  };
+
+  private _drawRect = (
+    rect: Rect,
+    fill?: string | CanvasGradient | CanvasPattern
+  ) => {
+    this._ctx.fillStyle = fill || "red";
+    this._ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+  };
+
+  private _drawCircle = (
+    circle: Circle,
+    fill?: string | CanvasGradient | CanvasPattern
+  ) => {
+    this._ctx.fillStyle = fill || "red";
+    this._ctx.beginPath();
+    this._ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+    this._ctx.closePath();
+    this._ctx.fill();
   };
 }
 

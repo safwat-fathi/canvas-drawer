@@ -4,6 +4,7 @@ var canvas = document.getElementById("canvas");
 var drawLine = document.getElementById("draw-line");
 var undo = document.getElementById("undo");
 var clear = document.getElementById("clear");
+var xport = document.getElementById("export");
 // canvas controls
 var lineWidth = document.getElementById("width");
 var color = document.getElementById("color");
@@ -12,6 +13,7 @@ canvasApp.init({ lineWidth: +lineWidth.value, strokeStyle: color.value });
 console.log("🚀 ~ color.value:", color.value);
 clear.addEventListener("click", canvasApp.clear);
 undo.addEventListener("click", canvasApp.undo);
+xport.addEventListener("click", canvasApp.export);
 drawLine.addEventListener("click", function () {
     var toggle = false;
     if (drawLine.getAttribute("data-toggle") === "true") {

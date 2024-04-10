@@ -19,7 +19,7 @@ var ActionType;
 var CanvasApp = /** @class */ (function () {
     function CanvasApp(canvas) {
         var _this = this;
-        this._isDrawLine = false;
+        this._isLine = false;
         this._options = {};
         this._active = false;
         this._actions = [];
@@ -33,7 +33,7 @@ var CanvasApp = /** @class */ (function () {
             _this._ctxOptions(options);
         };
         this.setDrawLine = function (isDrawLine) {
-            _this._isDrawLine = isDrawLine;
+            _this._isLine = isDrawLine;
             if (isDrawLine)
                 _this._registerUserEvents();
             else
@@ -44,6 +44,25 @@ var CanvasApp = /** @class */ (function () {
             _this._clickX = [];
             _this._clickY = [];
             _this._clickDrag = [];
+        };
+        this.export = function () {
+            // const dataUrl = this._canvas.toDataURL();
+            var data = {
+                actions: _this._actions,
+                width: _this._canvas.width,
+                height: _this._canvas.height,
+            };
+            var string = JSON.stringify(data);
+            // create a blob object representing the data as a JSON string
+            var file = new Blob([string], {
+                type: "application/json",
+            });
+            var link = document.createElement("a");
+            link.href = URL.createObjectURL(file);
+            link.download = "canvas.json";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         };
         this._ctxOptions = function (options) {
             var _a, _b, _c, _d, _e;
@@ -82,7 +101,7 @@ var CanvasApp = /** @class */ (function () {
             }
             _this._addClick(mouseX, mouseY, false);
             _this._active = true;
-            if (_this._isDrawLine)
+            if (_this._isLine)
                 _this._draw();
         };
         this._moveEventHandler = function (e) {
@@ -99,7 +118,7 @@ var CanvasApp = /** @class */ (function () {
             }
             if (_this._active) {
                 _this._addClick(mouseX, mouseY, true);
-                if (_this._isDrawLine)
+                if (_this._isLine)
                     _this._draw();
             }
         };
@@ -109,7 +128,7 @@ var CanvasApp = /** @class */ (function () {
             if (!_this._isActive())
                 return;
             _this._active = false;
-            if (_this._isDrawLine) {
+            if (_this._isLine) {
                 _this._actions.push({
                     x: _this._clickX,
                     y: _this._clickY,
@@ -212,6 +231,17 @@ var CanvasApp = /** @class */ (function () {
                 }
             }
             _this._ctx.closePath();
+        };
+        this._drawRect = function (rect, fill) {
+            _this._ctx.fillStyle = fill || "red";
+            _this._ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+        };
+        this._drawCircle = function (circle, fill) {
+            _this._ctx.fillStyle = fill || "red";
+            _this._ctx.beginPath();
+            _this._ctx.arc(circle.x, circle.y, circle.radius, 0, Math.PI * 2);
+            _this._ctx.closePath();
+            _this._ctx.fill();
         };
         this._canvas = canvas;
         this._ctx = canvas.getContext("2d");
